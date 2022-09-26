@@ -145,13 +145,13 @@ void NGC_Exporter::cutter_milling(std::ofstream& of, shared_ptr<Cutter> cutter, 
     /* Lift between steps if this is not the first pass and the path
        is not a closed loop. */
     if (i > 0 && path.front() != path.back()) {
-      of << "G00 Z" << cutter->zsafe * cfactor << " ( retract )\n";
+      of << "G00 Z" << cutter->zsafe * cfactor << " ; retract\n";
       of << "G00 X" << ( path.begin()->x() - xoffsetTot ) * cfactor << " Y"
-         << ( path.begin()->y() - yoffsetTot ) * cfactor << " ( rapid move to begin. )\n";
+         << ( path.begin()->y() - yoffsetTot ) * cfactor << " ; rapid move to begin.\n";
     }
 
-    of << "G01 Z" << z * cfactor << " F" << cutter->vertfeed * cfactor << " ( plunge. )\n";
-    of << "G04 P0 ( dwell for no time -- G64 should not smooth over this point )\n";
+    of << "G01 Z" << z * cfactor << " F" << cutter->vertfeed * cfactor << " ; plunge.\n";
+    of << "G04 P0 ; dwell for no time -- G64 should not smooth over this point\n";
     of << "G01 F" << cutter->feed * cfactor << "\n";
 
     auto current_bridge = bridges.cbegin();
@@ -188,9 +188,9 @@ void NGC_Exporter::isolation_milling(std::ofstream& of, shared_ptr<RoutingMill> 
   of << "G01 F" << mill->vertfeed * cfactor << '\n';
 
   if (!mill->pre_milling_gcode.empty()) {
-    of << "( begin pre-milling-gcode )\n";
+    of << "; begin pre-milling-gcode\n";
     of << mill->pre_milling_gcode << "\n";
-    of << "( end pre-milling-gcode )\n";
+    of << "; end pre-milling-gcode\n";
   }
 
   const unsigned int steps_num = ceil(-mill->zwork / mill->stepsize);
@@ -198,14 +198,14 @@ void NGC_Exporter::isolation_milling(std::ofstream& of, shared_ptr<RoutingMill> 
   for (unsigned int i = 0; i < steps_num; i++) {
     const double z = mill->zwork / steps_num * (i + 1);
     linestring_type_fp::const_iterator iter = path.cbegin();
-    of << "( Mill infeed pass " << i+1 << "/" << steps_num << " )\n";
+    of << "; Mill infeed pass " << i+1 << "/" << steps_num << "\n";
 
     /* Lift between steps if this is not the first pass and the path
        is not a closed loop. */
     if (i > 0 && path.front() != path.back()) {
-      of << "G00 Z" << mill->zsafe * cfactor << " ( retract )\n";
+      of << "G00 Z" << mill->zsafe * cfactor << " ; retract\n";
       of << "G00 X" << ( path.begin()->x() - xoffsetTot ) * cfactor << " Y"
-         << ( path.begin()->y() - yoffsetTot ) * cfactor << " ( rapid move to begin. )\n";
+         << ( path.begin()->y() - yoffsetTot ) * cfactor << " ; rapid move to begin.\n";
     }
 
     if (leveller) {
@@ -217,7 +217,7 @@ void NGC_Exporter::isolation_milling(std::ofstream& of, shared_ptr<RoutingMill> 
     } else {
       of << "G01 Z" << z * cfactor << "\n";
     }
-    of << "G04 P0 ( dwell for no time -- G64 should not smooth over this point )\n";
+    of << "G04 P0 ; dwell for no time -- G64 should not smooth over this point\n";
     of << "G01 F" << mill->feed * cfactor << '\n';
     while (iter != path.cend()) {
       if (leveller) {
@@ -232,9 +232,9 @@ void NGC_Exporter::isolation_milling(std::ofstream& of, shared_ptr<RoutingMill> 
     }
   }
   if (!mill->post_milling_gcode.empty()) {
-    of << "( begin post-milling-gcode )\n";
+    of << "; begin post-milling-gcode\n";
     of << mill->post_milling_gcode << "\n";
-    of << "( end post-milling-gcode )\n";
+    of << "; end post-milling-gcode\n";
   }
 }
 
@@ -263,13 +263,13 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     // write header to .ngc file
     for ( string s : header )
     {
-        of << "( " << s << " )\n";
+        of << "; " << s << "\n";
     }
 
     if( leveller || ( tileInfo.enabled && tileInfo.software != Software::CUSTOM ) )
-        of << "( Gcode for " << tileInfo.software << " )\n";
+        of << "; Gcode for " << tileInfo.software << "\n";
     else
-        of << "( Software-independent Gcode )\n";
+        of << "; Software-independent Gcode\n";
 
     of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
     of.precision(5);              //Set floating-point decimal precision
@@ -277,21 +277,21 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     of << "\n" << preamble;       //insert external preamble
 
     if (bMetricoutput) {
-      of << "G94 ( Millimeters per minute feed rate. )\n"
-         << "G21 ( Units == Millimeters. )\n\n";
+      of << "G94 ; Millimeters per minute feed rate.\n"
+         << "G21 ; Units == Millimeters.\n\n";
     } else {
-      of << "G94 ( Inches per minute feed rate. )\n"
-         << "G20 ( Units == INCHES. )\n\n";
+      of << "G94 ; Inches per minute feed rate.\n"
+         << "G20 ; Units == INCHES.\n\n";
     }
 
-    of << "G90 ( Absolute coordinates. )\n"
-       << "G00 S" << left << mill->speed << " ( RPM spindle speed. )\n";
+    of << "G90 ; Absolute coordinates.\n"
+       << "G00 S" << left << mill->speed << " ; RPM spindle speed.\n";
 
     if (mill->explicit_tolerance) {
-      of << "G64 P" << mill->tolerance * cfactor << " ( set maximum deviation from commanded toolpath )\n";
+      of << "G64 P" << mill->tolerance * cfactor << " ; set maximum deviation from commanded toolpath\n";
     }
 
-    of << "G01 F" << mill->feed * cfactor << " ( Feedrate. )\n\n";
+    of << "G01 F" << mill->feed * cfactor << " ; Feedrate.\n\n";
 
     if (leveller) {
       leveller->prepareWorkarea(all_toolpaths);
@@ -318,35 +318,35 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       }
       Tiling tiling(tileInfo, cfactor, main_sub_ocodes.getUniqueCode());
       if (toolpaths_index == all_toolpaths.size() - 1) {
-        tiling.setGCodeEnd(string("\nG04 P0 ( dwell for no time -- G64 should not smooth over this point )\n")
+        tiling.setGCodeEnd(string("\nG04 P0 ; dwell for no time -- G64 should not smooth over this point\n")
                            + (bZchangeG53 ? "G53 " : "") + "G00 Z" + str( format("%.6f") % ( mill->zchange * cfactor ) ) +
-                           " ( retract )\n\n" + postamble + "M5 ( Spindle off. )\nG04 P" +
+                           " ; retract\n\n" + postamble + "M5 ; Spindle off.\nG04 P" +
                            to_string(mill->spindown_time) + "\n");
       }
 
       // Start the new tool.
       of << endl
-         << (bZchangeG53 ? "G53 " : "") << "G00 Z" << mill->zchange * cfactor << " (Retract to tool change height)" << endl
+         << (bZchangeG53 ? "G53 " : "") << "G00 Z" << mill->zchange * cfactor << " ; Retract to tool change height" << endl
          << "T" << toolpaths_index << endl
-         << "M5      (Spindle stop.)" << endl
-         << "G04 P" << mill->spindown_time << " (Wait for spindle to stop)" << endl;
+         << "M5      ; Spindle stop." << endl
+         << "G04 P" << mill->spindown_time << " ; Wait for spindle to stop" << endl;
       if (cutter) {
-        of << "(MSG, Change tool bit to cutter diameter ";
+        of << "MSG(\"Change tool bit to cutter diameter ";
       } else if (isolator) {
-        of << "(MSG, Change tool bit to mill diameter ";
+        of << "MSG(\"Change tool bit to mill diameter ";
       } else {
         throw std::logic_error("Can't cast to Cutter nor Isolator.");
       }
       const auto& tool_diameter = all_toolpaths[toolpaths_index].first;
       if (bMetricoutput) {
-        of << (tool_diameter * 25.4) << "mm)" << endl;
+        of << (tool_diameter * 25.4) << "mm\")" << endl;
       } else {
-        of << tool_diameter << "in)" << endl;
+        of << tool_diameter << "in\")" << endl;
       }
-      of << (nom6?"":"M6      (Tool change.)\n")
-         << "M0      (Temporary machine stop.)" << endl
-         << "M3 ( Spindle on clockwise. )" << endl
-         << "G04 P" << mill->spinup_time << " (Wait for spindle to get up to speed)" << endl;
+      of << (nom6?"":"M6      ; Tool change.\n")
+         << "M0      ; Temporary machine stop." << endl
+         << "M3 ; Spindle on clockwise." << endl
+         << "G04 P" << mill->spinup_time << " ; Wait for spindle to get up to speed" << endl;
 
       tiling.header( of );
 
@@ -356,7 +356,7 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
           double xoffsetTot = xoffset - ( i % 2 ? tileInfo.forXNum - j - 1 : j ) * tileInfo.boardWidth;
 
           if( tileInfo.enabled && tileInfo.software == Software::CUSTOM )
-            of << "( Piece #" << j + 1 + i * tileInfo.forXNum << ", position [" << j << ";" << i << "] )\n\n";
+            of << "; Piece #" << j + 1 + i * tileInfo.forXNum << ", position [" << j << ";" << i << "]\n\n";
 
           // contours
           for(size_t path_index = 0; path_index < toolpaths.size(); path_index++) {
@@ -366,10 +366,10 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
             }
 
             // retract, move to the starting point of the next contour
-            of << "G04 P0 ( dwell for no time -- G64 should not smooth over this point )\n";
-            of << "G00 Z" << mill->zsafe * cfactor << " ( retract )" << endl << endl;
+            of << "G04 P0 ; dwell for no time -- G64 should not smooth over this point\n";
+            of << "G00 Z" << mill->zsafe * cfactor << " ; retract" << endl << endl;
             of << "G00 X" << ( path.begin()->x() - xoffsetTot ) * cfactor << " Y"
-               << ( path.begin()->y() - yoffsetTot ) * cfactor << " ( rapid move to begin. )\n";
+               << ( path.begin()->y() - yoffsetTot ) * cfactor << " ; rapid move to begin.\n";
 
             /* if we're cutting, perhaps do it in multiple steps, but do isolations just once.
              * i know this is partially repetitive, but this way it's easier to read
@@ -388,8 +388,8 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     if (leveller) {
       leveller->footer(of);
     }
-    of << "M9 ( Coolant off. )" << endl
-       << "M2 ( Program end. )" << endl << endl;
+    of << "M9 ; Coolant off." << endl
+       << "M2 ; Program end." << endl << endl;
 
 
     of.close();

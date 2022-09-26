@@ -104,19 +104,19 @@ ExcellonProcessor::ExcellonProcessor(const boost::program_options::variables_map
     //set metric or imperial preambles
     if (bMetricOutput)
     {
-        preamble = string("G94       (Millimeters per minute feed rate.)\n")
-                   + "G21       (Units == Millimeters.)\n";
+        preamble = string("G94       ; Millimeters per minute feed rate.\n")
+                   + "G21       ; Units == Millimeters.\n";
     }
     else
     {
-        preamble = string("G94       (Inches per minute feed rate.)\n")
-                   + "G20       (Units == INCHES.)\n";
+        preamble = string("G94       ; Inches per minute feed rate.\n")
+                   + "G20       ; Units == INCHES.\n";
     }
 
     if (!options["nog91-1"].as<bool>())
-        preamble += "G91.1     (Incremental arc distance mode.)\n";
+        preamble += "G91.1     ; Incremental arc distance mode.\n";
 
-    preamble += "G90       (Absolute coordinates.)\n";
+    preamble += "G90       ; Absolute coordinates.\n";
 
     tiling = std::make_unique<Tiling>(tileInfo, cfactor, ocodes.getUniqueCode());
 }
@@ -253,11 +253,11 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
     zchange << setprecision(3) << fixed << driller->zchange * cfactor;
 
     tiling->setGCodeEnd((zchange_absolute ? "G53 " : "") + string("G00 Z") + zchange.str() +
-                         " ( All done -- retract )\n" + postamble_ext +
-                         "\nM5      (Spindle off.)\nG04 P" +
+                         " ; All done -- retract\n" + postamble_ext +
+                         "\nM5      ; Spindle off.\nG04 P" +
                          to_string(driller->spindown_time) +
-                        "\nM9      (Coolant off.)\n"
-                         "M2      (Program end.)\n\n");
+                        "\nM9      ; Coolant off.\n"
+                         "M2      ; Program end.\n\n");
 
     map<int, drillbit> bits = optimize_bits();
     const map<int, multi_linestring_type_fp> holes = optimize_holes(bits, onedrill, boost::none, min_milldrill_diameter);
@@ -276,24 +276,24 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
     //write header to .ngc file
     for (string s : header)
     {
-        of << "( " << s << " )" << "\n";
+        of << "; " << s << "\n";
     }
 
-    of << "( Software-independent Gcode )\n";
+    of << "; Software-independent Gcode\n";
 
     if (!onedrill)
     {
-        of << "\n( This file uses " << holes.size() << " drill bit sizes. )\n";
-        of << "( Bit sizes:";
+        of << "\n; This file uses " << holes.size() << " drill bit sizes.\n";
+        of << "; Bit sizes:";
         for (const auto& hole : holes) {
             const auto& bit = bits.at(hole.first);
             of << " [" << drill_to_string(bit) << "]";
         }
-        of << " )\n\n";
+        of << "\n\n";
     }
     else
     {
-        of << "\n( This file uses only one drill bit. Forced by 'onedrill' option )\n\n";
+        of << "\n; This file uses only one drill bit. Forced by 'onedrill' option\n\n";
     }
 
     of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
@@ -301,7 +301,7 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
 
     of << preamble_ext;        //insert external preamble file
     of << preamble;            //insert internal preamble
-    of << "G00 S" << left << driller->speed << "     (RPM spindle speed.)\n" << "\n";
+    of << "G00 S" << left << driller->speed << "     ; RPM spindle speed.\n" << "\n";
 
     //tiling->header( of );     // See TODO #2
 
@@ -310,14 +310,14 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
         if (zchange_absolute) {
             of << "G53 ";
         }
-        of << "G00 Z" << driller->zchange * cfactor << " (Retract)\n" << "T"
-           << hole.first << "\n" << "M5      (Spindle stop.)\n"
+        of << "G00 Z" << driller->zchange * cfactor << " ; Retract\n" << "T"
+           << hole.first << "\n" << "M5      ; Spindle stop.\n"
            << "G04 P" << driller->spindown_time
-           << "\n(MSG, Change tool bit to drill size "
-           << drill_to_string(bit) << ")\n"
-           << (nom6?"":"M6      (Tool change.)\n")
-           << "M0      (Temporary machine stop.)\n"
-           << "M3      (Spindle on clockwise.)\n"
+           << "\nMSG(\"Change tool bit to drill size "
+           << drill_to_string(bit) << "\")\n"
+           << (nom6?"":"M6      ; Tool change.\n")
+           << "M0      ; Temporary machine stop.\n"
+           << "M3      ; Spindle on clockwise.\n"
            << "G0 Z" << driller->zsafe * cfactor << "\n"
            << "G04 P" << driller->spinup_time << "\n\n";
 
@@ -566,11 +566,11 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
 
     zchange << setprecision(6) << fixed << target->zchange * cfactor;
     tiling->setGCodeEnd((zchange_absolute ? "G53 " : "") + string("G00 Z") + zchange.str() +
-                        " ( All done -- retract )\n" + postamble_ext +
-                        "\nM5      (Spindle off.)\nG04 P" +
+                        " ; All done -- retract\n" + postamble_ext +
+                        "\nM5      ; Spindle off.\nG04 P" +
                         to_string(target->spindown_time) +
-                        "\nM9      (Coolant off.)\n"
-                        "M2      (Program end.)\n\n");
+                        "\nM9      ; Coolant off.\n"
+                        "M2      ; Program end.\n\n");
 
     map<int, drillbit> bits = parsed_bits;
     const map<int, multi_linestring_type_fp> holes = optimize_holes(bits, false, min_milldrill_diameter, boost::none);
@@ -590,43 +590,43 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
     // write header to .ngc file
     for (string s : header)
     {
-        of << "( " << s << " )" << "\n";
+        of << "; " << s << "\n";
     }
 
     if( tileInfo.enabled && tileInfo.software != Software::CUSTOM )
-        of << "( Gcode for " << tileInfo.software << " )\n";
+        of << "; Gcode for " << tileInfo.software << "\n";
     else
-        of << "( Software-independent Gcode )\n";
+        of << "; Software-independent Gcode\n";
 
     of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
     of.precision(5);              //Set floating-point decimal precision
 
-    of << "( This file uses a mill head of " << (bMetricOutput ? (target->tool_diameter * 25.4) : target->tool_diameter)
+    of << "; This file uses a mill head of " << (bMetricOutput ? (target->tool_diameter * 25.4) : target->tool_diameter)
        << (bMetricOutput ? "mm" : "inch") << " to drill the " << holes.size()
-       << " hole sizes. )" << "\n";
+       << " hole sizes." << "\n";
 
-    of << "( Hole sizes:";
+    of << "; Hole sizes:";
     for (const auto& hole : holes) {
         const auto& bit = bits.at(hole.first);
         of << " [" << drill_to_string(bit) << "]";
     }
-    of << " )\n\n";
+    of << "\n\n";
 
     //preamble
     of << preamble_ext << preamble
-       << "S" << left << target->speed << "    (RPM spindle speed.)\n\n"
-       << "G01 F" << target->feed * cfactor << " (Feedrate)\n";
+       << "S" << left << target->speed << "    ; RPM spindle speed.\n\n"
+       << "G01 F" << target->feed * cfactor << " ; Feedrate\n";
     if (zchange_absolute) {
        of << "G53 ";
     }
-    of << "G00 Z" << target->zchange * cfactor << " (Retract to tool change height)\n"
+    of << "G00 Z" << target->zchange * cfactor << " ; Retract to tool change height\n"
        << "T" << (*holes.begin()).first << "\n"
-       << "M5        (Spindle stop.)\n"
+       << "M5        ; Spindle stop.\n"
        << "G04 P" << target->spindown_time << "\n"
-       << "(MSG, Change tool bit to drill size " << (bMetricOutput ? (target->tool_diameter * 25.4) : target->tool_diameter) << (bMetricOutput ? "mm" : "inch") << ")\n"
-       << "M6        (Tool change.)\n"
-       << "M0        (Temporary machine stop.)\n"
-       << "M3        (Spindle on clockwise.)\n"
+       << "MSG(\"Change tool bit to drill size " << (bMetricOutput ? (target->tool_diameter * 25.4) : target->tool_diameter) << (bMetricOutput ? "mm" : "inch") << "\")\n"
+       << "M6        ; Tool change.\n"
+       << "M0        ; Temporary machine stop.\n"
+       << "M3        ; Spindle on clockwise.\n"
        << "G04 P" << target->spinup_time << "\n"
        << "G00 Z" << target->zsafe * cfactor << "\n\n";
 
@@ -641,7 +641,7 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
             const double xoffsetTot = xoffset - ( i % 2 ? tileInfo.forXNum - j - 1 : j ) * tileInfo.boardWidth;
 
             if( tileInfo.enabled && tileInfo.software == Software::CUSTOM )
-                of << "( Piece #" << j + 1 + i * tileInfo.forXNum << ", position [" << j << ";" << i << "] )\n\n";
+                of << "; Piece #" << j + 1 + i * tileInfo.forXNum << ", position [" << j << ";" << i << "]\n\n";
 
             for (const auto& hole : holes) {
                 const auto& bit = bits.at(hole.first);
