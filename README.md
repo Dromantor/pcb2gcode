@@ -1,3 +1,14 @@
+**I created this fork & branch to make the gcode output compatible to big CNC mills with Siemens Sinumerik controls. I want to mill my PCBs at work and there we have such machines.**
+
+This is still work in progress, so not everything is functional yet.
+
+Only the gcode output functionality is changed, everything else is the same as in the original project.
+
+Because pcb2gcode lacks some functionality, like setting tool names and using those to select the tool instead of a number, it is still necessary to edit the gcode in an editor afterwards. Also some axis/channel names might be different between machines so you might have to change those in the source code before compiling, or replace them every time in the resulting gcode files.
+
+My target machine has a Sinumerik 828D control from ~2018 with touch screen (yes, the model numbers of Siemens controls aren't unique, the same model can be 3-4-5 different controls, from equally many generations; yes, this sucks).
+
+
 # pcb2gcode [![Build Status](https://github.com/pcb2gcode/pcb2gcode/workflows/CI/badge.svg)](https://github.com/pcb2gcode/pcb2gcode/actions) [![Coverage Status](https://coveralls.io/repos/github/pcb2gcode/pcb2gcode/badge.svg?branch=master)](https://coveralls.io/github/pcb2gcode/pcb2gcode?branch=master) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://payments.wikimedia.org/index.php?title=Special:PaypalExpressGateway&appeal=JimmyQuote&ffname=paypal_ec&recurring=&currency=USD&amount=0&payment_method=paypal&uselang=en&utm_medium=Waystogive&utm_campaign=C11_Waystogive&utm_source=Waystogive)
 
 pcb2gcode is a command-line software for the isolation, routing and drilling of PCBs.
