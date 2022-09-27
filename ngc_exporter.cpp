@@ -277,18 +277,16 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     of << "\n" << preamble;       //insert external preamble
 
     if (bMetricoutput) {
-      of << "G94 ; Millimeters per minute feed rate.\n"
-         << "G21 ; Units == Millimeters.\n\n";
+      of << "G710 ; Units = Millimeters & Feed = Millimeters per minute.\n\n";
     } else {
-      of << "G94 ; Inches per minute feed rate.\n"
-         << "G20 ; Units == INCHES.\n\n";
+      of << "G700 ; Units = Inches & Feed = Inches per minute.\n\n";
     }
 
     of << "G90 ; Absolute coordinates.\n"
        << "G00 S" << left << mill->speed << " ; RPM spindle speed.\n";
 
     if (mill->explicit_tolerance) {
-      of << "G64 P" << mill->tolerance * cfactor << " ; set maximum deviation from commanded toolpath\n";
+      of << "G641 ADIS=" << mill->tolerance * cfactor << " ; set maximum deviation from commanded toolpath\n";
     }
 
     of << "G01 F" << mill->feed * cfactor << " ; Feedrate.\n\n";
@@ -319,9 +317,9 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       Tiling tiling(tileInfo, cfactor, main_sub_ocodes.getUniqueCode());
       if (toolpaths_index == all_toolpaths.size() - 1) {
         tiling.setGCodeEnd(string("\nG04 P0 ; dwell for no time -- G64 should not smooth over this point\n")
-                           + (bZchangeG53 ? "G53 " : "") + "G00 Z" + str( format("%.6f") % ( mill->zchange * cfactor ) ) +
-                           " ; retract\n\n" + postamble + "M5 ; Spindle off.\nG04 P" +
-                           to_string(mill->spindown_time) + "\n");
+                           + (bZchangeG53 ? "G53 " : "") + "G00 Z" + str( format("%.6f") % ( mill->zchange * cfactor ) ) + " ; retract\n\n"
+                           + postamble + "M5 ; Spindle off.\n"
+                           + "G04 P" + to_string(mill->spindown_time) + "\n");
       }
 
       // Start the new tool.
@@ -343,10 +341,11 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       } else {
         of << tool_diameter << "in\")" << endl;
       }
-      of << (nom6?"":"M6      ; Tool change.\n")
+      of << (nom6 ? "" : "M6      ; Tool change.\n")
          << "M0      ; Temporary machine stop." << endl
          << "M3 ; Spindle on clockwise." << endl
-         << "G04 P" << mill->spinup_time << " ; Wait for spindle to get up to speed" << endl;
+         << "G04 P" << mill->spinup_time << " ; Wait for spindle to get up to speed" << endl
+         << "M07 ; Air blast cooling on.";
 
       tiling.header( of );
 
@@ -382,14 +381,15 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
           }
         }
       }
+      
+      of << "M09 ; Coolant off." << endl;
 
       tiling.footer( of );
     }
     if (leveller) {
       leveller->footer(of);
     }
-    of << "M9 ; Coolant off." << endl
-       << "M2 ; Program end." << endl << endl;
+    of << "M30 ; Program end." << endl << endl;
 
 
     of.close();
