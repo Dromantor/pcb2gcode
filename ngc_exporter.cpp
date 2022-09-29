@@ -282,8 +282,7 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       of << "G700 ; Units = Inches & Feed = Inches per minute.\n\n";
     }
 
-    of << "G90 ; Absolute coordinates.\n"
-       << "G00 S" << left << mill->speed << " ; RPM spindle speed.\n";
+    of << "G90 ; Absolute coordinates.\n";
 
     if (mill->explicit_tolerance) {
       of << "G641 ADIS=" << mill->tolerance * cfactor << " ; set maximum deviation from commanded toolpath\n";
@@ -325,29 +324,17 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       }
 
       // tool change
-      of << endl
-         << (bZchangeG53 ? "G53 " : "") << "G00 Z" << mill->zchange * cfactor << " ; Retract to tool change height" << endl
-         << "T" << toolpaths_index << endl
-         << "M5      ; Spindle stop." << endl
-         << "G04 P" << mill->spindown_time << " ; Wait for spindle to stop" << endl;
-      if (cutter) {
-        of << "MSG(\"Change tool bit to cutter diameter ";
-      } else if (isolator) {
-        of << "MSG(\"Change tool bit to mill diameter ";
-      } else {
-        throw std::logic_error("Can't cast to Cutter nor Isolator.");
-      }
       const auto& tool_diameter = all_toolpaths[toolpaths_index].first;
-      if (bMetricoutput) {
-        of << (tool_diameter * 25.4) << "mm\")" << endl;
-      } else {
-        of << tool_diameter << "in\")" << endl;
-      }
-      of << (nom6 ? "" : "M6      ; Tool change.\n")
-         << "M0      ; Temporary machine stop." << endl
-         << "M3 ; Spindle on clockwise." << endl
-         << "G04 P" << mill->spinup_time << " ; Wait for spindle to get up to speed" << endl
-         << "M07 ; Air blast cooling on.";
+      std::stringstream tool_string;
+      tool_string << (cutter ? "EM" : "IM") << tool_diameter * (bMetricoutput ? 25.4 : 1);
+      of << endl
+         << "MSG(\"" << tool_string.str() << "\") ; Set tool name as screen message." << endl
+         << "T=\"" << tool_string.str() << "\" ; Select tool by name." << endl
+         << "M6 ; Do tool change." << endl;
+      of << endl
+         << "M1 ; Optional machine stop." << endl
+         << "M3 S" << left << mill->speed << " ; Spindle on clockwise with set RPM." << endl
+         << "M7 ; Air blast cooling on.";
 
       tiling.header( of );
 
