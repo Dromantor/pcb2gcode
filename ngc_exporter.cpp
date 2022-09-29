@@ -109,11 +109,11 @@ void NGC_Exporter::export_all(boost::program_options::variables_map& options)
         }
 
         boost::optional<autoleveller> leveller = boost::none;
-        if ((options["al-front"].as<bool>() && layername == "front") ||
-            (options["al-back"].as<bool>() && layername == "back")) {
-          leveller.emplace(options, &ocodes, &globalVars,
-                           xoffset, yoffset, tileInfo);
-        }
+        //if ((options["al-front"].as<bool>() && layername == "front") ||
+        //    (options["al-back"].as<bool>() && layername == "back")) {
+        //  leveller.emplace(options, &ocodes, &globalVars,
+        //                   xoffset, yoffset, tileInfo);
+        //}
 
         std::stringstream option_name;
         option_name << layername << "-output";
