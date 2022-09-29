@@ -277,7 +277,7 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
         of << "; " << s << "\n";
     }
 
-    of << "; Software-independent Gcode\n";
+    of << "; Gcode for Sinumerik controls\n";
 
     if (!onedrill)
     {
@@ -598,7 +598,7 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
     if( tileInfo.enabled && tileInfo.software != Software::CUSTOM )
         of << "; Gcode for " << tileInfo.software << "\n";
     else
-        of << "; Software-independent Gcode\n";
+        of << "; Gcode for Sinumeric controls\n";
 
     of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
     of.precision(5);              //Set floating-point decimal precision

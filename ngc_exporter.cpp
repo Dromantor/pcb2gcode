@@ -269,7 +269,7 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     if( leveller || ( tileInfo.enabled && tileInfo.software != Software::CUSTOM ) )
         of << "; Gcode for " << tileInfo.software << "\n";
     else
-        of << "; Software-independent Gcode\n";
+        of << "; Gcode for Sinumerik controls\n";
 
     of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
     of.precision(5);              //Set floating-point decimal precision
