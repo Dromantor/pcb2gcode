@@ -271,7 +271,7 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
         throw std::invalid_argument(error_message.str());
       }
     }
-    //write header to .ngc file
+    //write header to .mpf file
     for (string s : header)
     {
         of << "; " << s << "\n";
@@ -589,7 +589,7 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
       }
     }
 
-    // write header to .ngc file
+    // write header to .mpf file
     for (string s : header)
     {
         of << "; " << s << "\n";

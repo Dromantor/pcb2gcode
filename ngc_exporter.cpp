@@ -260,7 +260,7 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       throw std::invalid_argument(error_message.str());
     }
 
-    // write header to .ngc file
+    // write header to .mpf file
     for ( string s : header )
     {
         of << "; " << s << "\n";

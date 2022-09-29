@@ -114,11 +114,11 @@ void options::parse(int argc, const char** argv) {
        */
       string basename = "";
       basename = instance().vm["basename"].as<string>() + "_";
-      instance().vm.at("front-output").value() = basename + "front.ngc";
-      instance().vm.at("back-output").value() = basename + "back.ngc";
-      instance().vm.at("drill-output").value() = basename + "drill.ngc";
-      instance().vm.at("outline-output").value() = basename + "outline.ngc";
-      instance().vm.at("milldrill-output").value() = basename + "milldrill.ngc";
+      instance().vm.at("front-output").value() = basename + "front.mpf";
+      instance().vm.at("back-output").value() = basename + "back.mpf";
+      instance().vm.at("drill-output").value() = basename + "drill.mpf";
+      instance().vm.at("outline-output").value() = basename + "outline.mpf";
+      instance().vm.at("milldrill-output").value() = basename + "milldrill.mpf";
     }
 
     if (instance().vm.count("tolerance")) {
@@ -225,11 +225,11 @@ options::options()
         ->default_value(std::vector<AvailableDrills>{})
         ->multitoken(), "list of drills available")
        ("onedrill", po::value<bool>()->default_value(false)->implicit_value(true), "use only one drill bit size")
-       ("drill-output", po::value<string>()->default_value("drill.ngc"), "output file for drilling")
+       ("drill-output", po::value<string>()->default_value("drill.mpf"), "output file for drilling")
        ("nog91-1", po::value<bool>()->default_value(false)->implicit_value(true), "do not explicitly set G91.1 in drill headers")
        ("nog81", po::value<bool>()->default_value(false)->implicit_value(true), "replace G81 with G0+G1")
        ("nom6", po::value<bool>()->default_value(false)->implicit_value(true), "do not emit M6 on tool changes")
-       ("milldrill-output", po::value<string>()->default_value("milldrill.ngc"), "output file for milldrilling");
+       ("milldrill-output", po::value<string>()->default_value("milldrill.mpf"), "output file for milldrilling");
    cfg_options.add(drilling_options);
 
    po::options_description milling_options("Milling options, for milling traces into the PCB");
@@ -263,8 +263,8 @@ options::options()
        ("draw-gerber-lines", po::value<bool>()->default_value(false)->implicit_value(true),
         "Draw lines in the gerber file as just lines and not as filled in shapes")
        ("preserve-thermal-reliefs", po::value<bool>()->default_value(true)->implicit_value(true), "generate mill paths for thermal reliefs in voronoi mode")
-       ("front-output", po::value<string>()->default_value("front.ngc"), "output file for front layer")
-       ("back-output", po::value<string>()->default_value("back.ngc"), "output file for back layer");
+       ("front-output", po::value<string>()->default_value("front.mpf"), "output file for front layer")
+       ("back-output", po::value<string>()->default_value("back.mpf"), "output file for back layer");
    cfg_options.add(milling_options);
 
    po::options_description outline_options("Outline options, for cutting the PCB out of the FR4");
@@ -282,7 +282,7 @@ options::options()
        ("bridges", po::value<Length>()->default_value(Length(0)), "add bridges with the given width to the outline cut")
        ("bridgesnum", po::value<unsigned int>()->default_value(2), "specify how many bridges should be created")
        ("zbridges", po::value<Length>(), "bridges height (Z-coordinates while engraving bridges, default to zsafe) ")
-       ("outline-output", po::value<string>()->default_value("outline.ngc"), "output file for outline");
+       ("outline-output", po::value<string>()->default_value("outline.mpf"), "output file for outline");
    cfg_options.add(outline_options);
 
    po::options_description optimization_options("Optimization options, for faster PCB creation, smaller output files, and different algorithms.");
