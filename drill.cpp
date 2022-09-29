@@ -305,6 +305,8 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
 
     for (const auto& hole : holes) {
         const auto& bit = bits.at(hole.first);
+        
+        // tool change
         if (zchange_absolute) {
             of << "G53 ";
         }

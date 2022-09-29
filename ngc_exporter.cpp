@@ -314,15 +314,17 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       if (toolpaths.size() < 1) {
         continue; // Nothing to do for this mill size.
       }
+      
       Tiling tiling(tileInfo, cfactor, main_sub_ocodes.getUniqueCode());
       if (toolpaths_index == all_toolpaths.size() - 1) {
+        // this is last tool, set file footer
         tiling.setGCodeEnd(string("\nG04 P0 ; dwell for no time -- G64 should not smooth over this point\n")
                            + (bZchangeG53 ? "G53 " : "") + "G00 Z" + str( format("%.6f") % ( mill->zchange * cfactor ) ) + " ; retract\n\n"
                            + postamble + "M5 ; Spindle off.\n"
                            + "G04 P" + to_string(mill->spindown_time) + "\n");
       }
 
-      // Start the new tool.
+      // tool change
       of << endl
          << (bZchangeG53 ? "G53 " : "") << "G00 Z" << mill->zchange * cfactor << " ; Retract to tool change height" << endl
          << "T" << toolpaths_index << endl
