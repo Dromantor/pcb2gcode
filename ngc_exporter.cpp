@@ -277,18 +277,25 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     of << "\n" << preamble;       //insert external preamble
 
     if (bMetricoutput) {
-      of << "G710 ; Units = Millimeters & Feed = Millimeters per minute.\n\n";
+      //of << "G710 ; Units = Millimeters & Feed = Millimeters per minute.\n\n";
     } else {
+      of << "; WARNING: NON-METRIC OUTPUT CONFIGURED!" << endl;
       of << "G700 ; Units = Inches & Feed = Inches per minute.\n\n";
     }
 
-    of << "G90 ; Absolute coordinates.\n";
+    //of << "G90 ; Absolute coordinates.\n";
 
-    if (mill->explicit_tolerance) {
-      of << "G641 ADIS=" << mill->tolerance * cfactor << " ; set maximum deviation from commanded toolpath\n";
-    }
+    //if (mill->explicit_tolerance) {
+    //  of << "G641 ADIS=" << mill->tolerance * cfactor << " ; set maximum deviation from commanded toolpath\n";
+    //}
 
-    of << "G01 F" << mill->feed * cfactor << " ; Feedrate.\n\n";
+    //of << "G01 F" << mill->feed * cfactor << " ; Feedrate.\n\n";
+    
+    of << "G17 G90 G40 G64" << endl
+       << "FGROUP(X1,Y1,Z1)" << endl
+       << "FFWON" << endl
+       << "CFIN" << endl
+       << "TRANS X+0 Y+0 Z+100 ; comment this out after checking program on machine" << endl;
 
     //if (leveller) {
     //  leveller->prepareWorkarea(all_toolpaths);
@@ -331,7 +338,7 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
          << "MSG(\"" << tool_string.str() << "\") ; Set tool name as screen message." << endl
          << "T=\"" << tool_string.str() << "\" ; Select tool by name." << endl
          << "M6 ; Do tool change." << endl;
-      of << endl
+         << endl
          << "M1 ; Optional machine stop." << endl
          << "M3 S" << left << mill->speed << " ; Spindle on clockwise with set RPM." << endl
          << "M7 ; Air blast cooling on.";
