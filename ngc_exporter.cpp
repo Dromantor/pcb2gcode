@@ -208,26 +208,26 @@ void NGC_Exporter::isolation_milling(std::ofstream& of, shared_ptr<RoutingMill> 
          << ( path.begin()->y() - yoffsetTot ) * cfactor << " ; rapid move to begin.\n";
     }
 
-    if (leveller) {
-      leveller->setLastChainPoint(point_type_fp((path.begin()->x() - xoffsetTot) * cfactor,
-                                                (path.begin()->y() - yoffsetTot) * cfactor));
-      of << leveller->g01Corrected(point_type_fp((path.begin()->x() - xoffsetTot) * cfactor,
-                                                 (path.begin()->y() - yoffsetTot) * cfactor),
-                                   z * cfactor);
-    } else {
+    //if (leveller) {
+    //  leveller->setLastChainPoint(point_type_fp((path.begin()->x() - xoffsetTot) * cfactor,
+    //                                            (path.begin()->y() - yoffsetTot) * cfactor));
+    //  of << leveller->g01Corrected(point_type_fp((path.begin()->x() - xoffsetTot) * cfactor,
+    //                                             (path.begin()->y() - yoffsetTot) * cfactor),
+    //                               z * cfactor);
+    //} else {
       of << "G01 Z" << z * cfactor << "\n";
-    }
+    //}
     of << "G04 P0 ; dwell for no time -- G64 should not smooth over this point\n";
     of << "G01 F" << mill->feed * cfactor << '\n';
     while (iter != path.cend()) {
-      if (leveller) {
-        of << leveller->addChainPoint(point_type_fp((iter->x() - xoffsetTot) * cfactor,
-                                                    (iter->y() - yoffsetTot) * cfactor),
-                                      z * cfactor);
-      } else {
+      //if (leveller) {
+      //  of << leveller->addChainPoint(point_type_fp((iter->x() - xoffsetTot) * cfactor,
+      //                                              (iter->y() - yoffsetTot) * cfactor),
+      //                                z * cfactor);
+      //} else {
         of << "G01 X" << (iter->x() - xoffsetTot) * cfactor << " Y"
            << (iter->y() - yoffsetTot) * cfactor << '\n';
-      }
+      //}
       ++iter;
     }
   }
@@ -266,9 +266,9 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
         of << "; " << s << "\n";
     }
 
-    if( leveller || ( tileInfo.enabled && tileInfo.software != Software::CUSTOM ) )
-        of << "; Gcode for " << tileInfo.software << "\n";
-    else
+    //if( leveller || ( tileInfo.enabled && tileInfo.software != Software::CUSTOM ) )
+    //    of << "; Gcode for " << tileInfo.software << "\n";
+    //else
         of << "; Gcode for Sinumerik controls\n";
 
     of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
@@ -290,10 +290,10 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
 
     of << "G01 F" << mill->feed * cfactor << " ; Feedrate.\n\n";
 
-    if (leveller) {
-      leveller->prepareWorkarea(all_toolpaths);
-      leveller->header(of);
-    }
+    //if (leveller) {
+    //  leveller->prepareWorkarea(all_toolpaths);
+    //  leveller->header(of);
+    //}
 
     shared_ptr<Cutter> cutter = dynamic_pointer_cast<Cutter>(mill);
     shared_ptr<Isolator> isolator = dynamic_pointer_cast<Isolator>(mill);
@@ -375,9 +375,9 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
 
       tiling.footer( of );
     }
-    if (leveller) {
-      leveller->footer(of);
-    }
+    //if (leveller) {
+    //  leveller->footer(of);
+    //}
     of << "M30 ; Program end." << endl << endl;
 
 
