@@ -263,24 +263,26 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
     // write header to .mpf file
     for ( string s : header )
     {
-        of << "; " << s << "\n";
+        of << "; " << s << endl;
     }
 
     //if( leveller || ( tileInfo.enabled && tileInfo.software != Software::CUSTOM ) )
     //    of << "; Gcode for " << tileInfo.software << "\n";
     //else
-        of << "; Gcode for Sinumerik controls\n";
+        of << "; Gcode for Sinumerik controls" << endl;
 
-    of.setf(ios_base::fixed);      //write floating-point values in fixed-point notation
-    of.precision(5);              //Set floating-point decimal precision
+    of.setf(ios_base::fixed); //write floating-point values in fixed-point notation
+    of.precision(5); //Set floating-point decimal precision
 
-    of << "\n" << preamble;       //insert external preamble
+    of << endl
+       << preamble; //insert external preamble
 
     if (bMetricoutput) {
       //of << "G710 ; Units = Millimeters & Feed = Millimeters per minute.\n\n";
     } else {
-      of << "; WARNING: NON-METRIC OUTPUT CONFIGURED!" << endl;
-      of << "G700 ; Units = Inches & Feed = Inches per minute.\n\n";
+      of << "; WARNING: NON-METRIC OUTPUT CONFIGURED!" << endl
+         << "G700 ; Units = Inches & Feed = Inches per minute." << endl
+         << endl;
     }
 
     //of << "G90 ; Absolute coordinates.\n";
@@ -324,24 +326,29 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
       Tiling tiling(tileInfo, cfactor, main_sub_ocodes.getUniqueCode());
       if (toolpaths_index == all_toolpaths.size() - 1) {
         // this is last tool, set file footer
-        tiling.setGCodeEnd(string("\nG04 P0 ; dwell for no time -- G64 should not smooth over this point\n")
-                           + (bZchangeG53 ? "G53 " : "") + "G00 Z" + str( format("%.6f") % ( mill->zchange * cfactor ) ) + " ; retract\n\n"
-                           + postamble + "M5 ; Spindle off.\n"
-                           + "G04 P" + to_string(mill->spindown_time) + "\n");
+        std::ostringstream end_gcode;
+        end_gcode << endl
+                  << "G04 P0 ; dwell for no time -- G64 should not smooth over this point" << endl
+                  << (bZchangeG53 ? "G53 " : "") << "G00 Z" << str( format("%.6f") % ( mill->zchange * cfactor ) ) << " ; retract" << endl
+                  << endl
+                  << postamble
+                  << "M5 ; Spindle off." << endl
+                  << "G04 P" + to_string(mill->spindown_time) << endl;
+        tiling.setGCodeEnd(end_gcode.str());
       }
 
       // tool change
       const auto& tool_diameter = all_toolpaths[toolpaths_index].first;
-      std::stringstream tool_string;
+      std::ostringstream tool_string;
       tool_string << (cutter ? "EM" : "IM") << tool_diameter * (bMetricoutput ? 25.4 : 1);
       of << endl
          << "MSG(\"" << tool_string.str() << "\") ; Set tool name as screen message." << endl
          << "T=\"" << tool_string.str() << "\" ; Select tool by name." << endl
-         << "M6 ; Do tool change." << endl;
+         << "M6 ; Do tool change." << endl
          << endl
          << "M1 ; Optional machine stop." << endl
          << "M3 S" << left << mill->speed << " ; Spindle on clockwise with set RPM." << endl
-         << "M7 ; Air blast cooling on.";
+         << "M7 ; Air blast cooling on." << endl;
 
       tiling.header( of );
 
@@ -351,7 +358,8 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
           double xoffsetTot = xoffset - ( i % 2 ? tileInfo.forXNum - j - 1 : j ) * tileInfo.boardWidth;
 
           if( tileInfo.enabled && tileInfo.software == Software::CUSTOM )
-            of << "; Piece #" << j + 1 + i * tileInfo.forXNum << ", position [" << j << ";" << i << "]\n\n";
+            of << "; Piece #" << j + 1 + i * tileInfo.forXNum << ", position [" << j << ";" << i << "]" << endl
+               << endl;
 
           // contours
           for(size_t path_index = 0; path_index < toolpaths.size(); path_index++) {
@@ -361,10 +369,11 @@ void NGC_Exporter::export_layer(shared_ptr<Layer> layer, string of_name, boost::
             }
 
             // retract, move to the starting point of the next contour
-            of << "G04 P0 ; dwell for no time -- G64 should not smooth over this point\n";
-            of << "G00 Z" << mill->zsafe * cfactor << " ; retract" << endl << endl;
-            of << "G00 X" << ( path.begin()->x() - xoffsetTot ) * cfactor << " Y"
-               << ( path.begin()->y() - yoffsetTot ) * cfactor << " ; rapid move to begin.\n";
+            of << "G04 P0 ; dwell for no time -- G64 should not smooth over this point" << endl
+               << "G00 Z" << mill->zsafe * cfactor << " ; retract" << endl
+               << endl
+               << "G00 X" << ( path.begin()->x() - xoffsetTot ) * cfactor << " Y"
+                   << ( path.begin()->y() - yoffsetTot ) * cfactor << " ; rapid move to begin." << endl;
 
             /* if we're cutting, perhaps do it in multiple steps, but do isolations just once.
              * i know this is partially repetitive, but this way it's easier to read
